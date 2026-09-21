@@ -12,7 +12,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/track-%2304%20smart--budget-blueviolet?style=flat-square" alt="Track 04"/>
   <img src="https://img.shields.io/badge/router-modelhop%201.1.0-green?style=flat-square" alt="ModelHop"/>
   <img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="MIT"/>
 </p>
