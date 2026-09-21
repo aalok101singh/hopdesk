@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: hopdesk
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: HOPDESK_CORS_ORIGINS
+        value: "*"

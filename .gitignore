@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+trace_log.jsonl
+trace_log.json
+modelhop_*.json
+modelhop_*.sqlite
+cost_log.json
+stitch_hopdesk_minimal_support_chat.zip

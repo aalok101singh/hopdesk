@@ -1,0 +1,56 @@
+models:
+- api_key_env: GROQ_API_KEY
+  capabilities:
+  - faq
+  - general
+  - classification
+  - reasoning
+  - coding
+  cost_per_1k_input: 0.0
+  cost_per_1k_output: 0.0
+  model: qwen/qwen3.8-27b
+  name: groq-qwen-qwen38-27b
+  provider: groq
+  tier: free
+- api_key_env: GEMINI_API_KEY
+  capabilities:
+  - faq
+  - general
+  - reasoning
+  cost_per_1k_input: 0.0
+  cost_per_1k_output: 0.0
+  model: gemini-3.6-flash
+  name: gemini-gemini-36-flash
+  provider: gemini
+  tier: free
+- api_key_env: OPENAI_API_KEY
+  capabilities:
+  - reasoning
+  - coding
+  - analysis
+  - creative
+  cost_per_1k_input: 0.03
+  cost_per_1k_output: 0.06
+  model: gpt-4
+  name: openai-gpt-4
+  provider: openai
+  tier: premium
+name: hopdesk
+routing:
+  confidence_threshold: 0.7
+  cost_savings_reference: max
+  cross_model_consensus: false
+  decompose_queries: true
+  fail_closed: true
+  fallback: cascade
+  llm_analysis: false
+  max_retries: 3
+  policy_version: '1'
+  trust_policy: {}
+shield:
+  enabled: true
+  quality_threshold: 0.8
+tracking:
+  log_costs: true
+  log_queries: true
+version: '1.0'

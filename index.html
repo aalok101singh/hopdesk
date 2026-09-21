@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HopDesk — Smart-Budget AI Support Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.1.0/index.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090b; --panel:#121215; --card:#18181b; --card2:#27272a;
+  --border:#27272a; --border2:#3f3f46;
+  --tx:#f4f4f5; --tx2:#e4e4e7; --mut:#a1a1aa; --dim:#71717a;
+  --em:#10b981; --teal:#14b8a6; --amber:#f59e0b;
+  --ease:cubic-bezier(.21,.9,.25,1); --ease-spring:cubic-bezier(.22,1,.36,1); --ease-pop:cubic-bezier(.22,1.15,.36,1); --t-fast:140ms; --t-med:260ms; --t-slow:380ms;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Geist','Inter',-apple-system,'Segoe UI',sans-serif;
+}
+/* Motion follows explicit user choice (motionMode): auto respects the OS,
+   on forces full motion, off forces none. Default with no override: full. */
+html[data-motion="reduced"] *{animation:none!important;transition:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes loadrise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.turn.enter{animation:loadrise 450ms var(--ease-spring) backwards}
+@keyframes din{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:none}}
+@keyframes bargrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+*{box-sizing:border-box;margin:0;padding:0}
+/* slim dark scrollbars that sit inside the theme */
+#thread,#drawer{scrollbar-width:thin;scrollbar-color:#3f3f46 transparent}
+#thread::-webkit-scrollbar,#drawer::-webkit-scrollbar{width:10px}
+#thread::-webkit-scrollbar-track,#drawer::-webkit-scrollbar-track{background:transparent}
+#thread::-webkit-scrollbar-thumb,#drawer::-webkit-scrollbar-thumb{background:#27272a;border-radius:8px;border:3px solid var(--bg);min-height:48px}
+#thread::-webkit-scrollbar-thumb:hover,#drawer::-webkit-scrollbar-thumb:hover{background:#3f3f46}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx2);font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+#app{display:flex;height:100vh;overflow:hidden}
+/* left rail */
+#rail{width:196px;flex:0 0 196px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 10px}
+.brand{font-size:13px;font-weight:600;color:var(--tx);padding:2px 10px 12px}
+.brand span{color:var(--dim);font-weight:500;font-size:11px;margin-left:6px}
+.rail-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;color:var(--mut);font-size:13px;padding:8px 10px;border-radius:8px;text-align:left}
+.rail-item:hover{background:var(--card);color:var(--tx)}
+.rail-item.active{background:var(--card);color:var(--tx)}
+/* thread column */
+#col{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+#strip{display:block;max-height:0;overflow:hidden;opacity:0;background:rgba(245,158,11,.08);border-bottom:1px solid transparent;color:#fbbf24;font-size:12.5px;padding:0 20px;font-family:var(--mono);transition:max-height var(--t-med) var(--ease),opacity var(--t-med) var(--ease),padding var(--t-med) var(--ease)}
+#strip.show{max-height:44px;opacity:1;padding:8px 20px;border-bottom-color:rgba(245,158,11,.35)}
+#strip button{float:right;background:none;border:1px solid rgba(245,158,11,.5);color:#fbbf24;border-radius:6px;font-size:11px;padding:2px 10px;font-family:var(--mono)}
+#statusline{display:flex;align-items:center;gap:14px;padding:10px 28px 0;font-size:12px;color:var(--mut);font-family:var(--mono)}
+#statusline .legend{margin-left:auto;display:flex;gap:12px}
+.dot{width:6px;height:6px;min-width:6px;border-radius:50%;display:inline-block;margin-right:5px;flex:0 0 auto;align-self:center}
+.dot.g{background:var(--em)}.dot.a{background:var(--amber)}.dot.s{background:#94a3b8}
+#statusline .mini{background:none;border:1px solid var(--border);color:var(--dim);border-radius:6px;font-size:11px;padding:2px 9px;font-family:var(--mono)}
+#statusline .mini:hover{color:var(--tx);border-color:var(--border2)}
+#thread{flex:1;overflow-y:auto;padding:14px 28px;max-width:860px;width:100%;margin:0 auto}
+.turn{margin-bottom:26px}
+.turn:last-child{animation:rise var(--t-slow) var(--ease-spring)}
+.turn.leaving{opacity:0;transition:opacity var(--t-fast) var(--ease)}
+.u{display:flex;justify-content:flex-end;margin-bottom:12px}
+.u span{background:var(--card2);border-radius:18px;padding:9px 16px;font-size:14px;max-width:80%}
+.a{font-size:15px;line-height:26px;color:var(--tx2)}
+.a p{margin-bottom:10px}
+.meta{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;color:var(--dim);font-family:var(--mono)}
+.meta .det{color:var(--mut);background:none;border:0;font-size:12px;font-family:var(--mono);padding:0}
+.meta .det:hover{color:var(--em)}
+.turn.inspected > .a{position:relative;border-radius:0 8px 8px 0;padding-left:14px}
+.turn.inspected > .a::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:2px;background:var(--em);transform:scaleY(0);animation:bargrow 180ms var(--ease) forwards}
+.turn.inspected.st-premium > .a::before{background:var(--amber)}
+.turn.inspected.st-fallback > .a::before{background:#94a3b8}
+/* drawer status theming: cheap=emerald (default), premium=amber, fallback=slate */
+#drawer[data-st="premium"] .d-tag{color:var(--amber);background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35)}
+#drawer[data-st="premium"] .cbar i{background:var(--amber)}
+#drawer[data-st="premium"] .confbig b{color:var(--amber)}
+#drawer[data-st="premium"] .savepill{color:var(--amber);background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35)}
+#drawer[data-st="fallback"] .d-tag{color:#94a3b8;background:rgba(148,163,184,.1);border-color:rgba(148,163,184,.35)}
+#drawer[data-st="fallback"] .cbar i{background:#94a3b8}
+#drawer[data-st="fallback"] .confbig b{color:#94a3b8}
+#drawer[data-st="fallback"] .savepill{color:#94a3b8;background:rgba(148,163,184,.1);border-color:rgba(148,163,184,.35)}
+/* pending (in-flight) state: pure UI, never enters turn data */
+.turn.pending .a{color:var(--dim)}
+.tdots{display:inline-flex;gap:6px;padding:6px 0}
+.tdots i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:pulse 1.1s infinite}
+.tdots i:nth-child(2){animation-delay:.18s}.tdots i:nth-child(3){animation-delay:.36s}
+@keyframes pulse{0%,100%{opacity:.25;transform:none}50%{opacity:1;transform:translateY(-2px)}}
+.routing-shimmer{font-size:12px;font-family:var(--mono);color:var(--dim);margin-top:8px;animation:pulse 1.6s infinite}
+.pend-err{display:flex;align-items:center;gap:10px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.35);border-radius:10px;padding:11px 13px;margin-top:12px;font-size:13px;color:#fbbf24}
+.pend-err button{margin-left:auto;background:none;border:1px solid rgba(245,158,11,.5);color:#fbbf24;border-radius:7px;padding:5px 13px;font-size:12px}
+.orderbox{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-top:12px;font-size:13px}
+.orderbox b{color:var(--tx);font-weight:600}
+.orderbox button{margin-left:auto;background:var(--card2);border:1px solid var(--border2);color:var(--tx);border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:500}
+.orderbox button:hover{border-color:var(--em)}
+.doc{display:inline-flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-top:12px;font-size:12.5px;font-family:var(--mono);color:var(--mut)}
+.doc button{margin-left:14px;background:var(--card2);border:1px solid var(--border2);color:var(--tx);border-radius:7px;padding:5px 13px;font-size:12px;font-family:var(--sans)}
+/* composer */
+#compwrap{padding:6px 28px 14px;max-width:860px;width:100%;margin:0 auto}
+#chips{display:flex;gap:8px;margin-bottom:9px}
+#chips button{background:var(--card);border:1px solid var(--border);color:var(--mut);border-radius:999px;font-size:12px;padding:5px 13px;font-family:var(--mono)}
+#chips button:hover{color:var(--tx);border-color:var(--border2)}
+#composer{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border2);border-radius:28px;padding:7px 7px 7px 20px;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+#composer input{flex:1;background:none;border:0;outline:0;color:var(--tx);font-size:14px;font-family:var(--sans)}
+#composer input::placeholder{color:var(--dim)}
+#send{width:38px;height:38px;border-radius:50%;border:0;background:var(--em);color:#052e22;font-size:16px;font-weight:700;flex:0 0 38px;transition:transform var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+#send:hover:not(:disabled){transform:translateY(-1px)}
+#send:active:not(:disabled){transform:scale(.96)}
+#send:disabled{opacity:.5;animation:pulse 1s infinite}
+#chips button,.orderbox button,.doc button,.mini{transition:transform var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+#chips button:hover,.orderbox button:hover{transform:translateY(-1px)}
+.meta .det{transition:color var(--t-fast) var(--ease)}
+#cap{text-align:center;font-size:11.5px;color:var(--dim);margin-top:7px;font-family:var(--mono)}
+/* drawer */
+#drawer{width:372px;flex:0 0 372px;background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:16px 18px 30px;transition:transform 340ms var(--ease-pop),opacity 260ms var(--ease)}
+#drawer.hide{display:none}
+#drawer.pre{transform:translateX(48px);opacity:0}
+#drawer.closing{transform:translateX(48px);opacity:0}
+#drawer.closing > *{opacity:0;transition:opacity 140ms var(--ease)}
+#drawer.closing > *:nth-child(2){transition-delay:20ms}
+#drawer.closing > *:nth-child(3){transition-delay:40ms}
+#drawer.closing > *:nth-child(4){transition-delay:60ms}
+#drawer.closing > *:nth-child(5){transition-delay:80ms}
+#drawer.closing > *:nth-child(n+6){transition-delay:100ms}
+#drawer.open > *{animation:din 320ms var(--ease-spring) backwards}
+#drawer.open > *:nth-child(2){animation-delay:40ms}
+#drawer.open > *:nth-child(3){animation-delay:80ms}
+#drawer.open > *:nth-child(4){animation-delay:120ms}
+#drawer.open > *:nth-child(5){animation-delay:160ms}
+#drawer.open > *:nth-child(6){animation-delay:200ms}
+#drawer.open > *:nth-child(n+7){animation-delay:240ms}
+.cbar i{transition:width .4s var(--ease)}
+.d-head{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.d-head h2{font-size:14px;font-weight:600;color:var(--tx)}
+.d-tag{font-size:11px;font-family:var(--mono);color:var(--em);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:6px;padding:2px 8px}
+.d-head button{margin-left:auto;background:none;border:0;color:var(--dim);font-size:16px}
+.d-sec{font-size:11px;font-weight:500;letter-spacing:.09em;color:var(--dim);font-family:var(--mono);margin:16px 0 8px;text-transform:uppercase}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:3px 0}
+.kv span{color:var(--mut)}
+.kv b{color:var(--tx);font-weight:500;text-align:right;font-family:var(--mono);font-size:12px}
+.kv b.free{color:var(--em)}
+.why{font-size:12.5px;color:var(--mut);line-height:19px;border-left:2px solid var(--border2);padding-left:10px;margin-top:6px}
+.confbig{font-size:12px;font-family:var(--mono);color:var(--tx);margin-bottom:7px}
+.confbig b{color:var(--em)}
+.cbar{height:4px;background:var(--card2);border-radius:99px;overflow:hidden}
+.cbar i{display:block;height:100%;background:var(--em);border-radius:99px}
+.cscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);font-family:var(--mono);margin-top:4px}
+.toks{display:flex;gap:8px}
+.tok{flex:1;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:9px 6px;text-align:center}
+.tok .t-l{font-size:10px;color:var(--dim);font-family:var(--mono)}
+.tok .t-v{font-size:15px;font-weight:600;color:var(--tx);font-family:var(--mono)}
+.money-big{font-size:22px;font-weight:600;color:var(--tx);font-family:var(--mono)}
+.money-sub{font-size:11.5px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+.savepill{display:inline-block;margin-top:8px;font-size:11.5px;font-family:var(--mono);color:var(--em);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:7px;padding:4px 10px}
+#copybtn{display:block;margin-top:14px;background:none;border:0;color:var(--mut);font-size:12px;font-family:var(--mono)}
+#copybtn:hover{color:var(--em)}
+@media (max-width:1100px){#drawer{position:fixed;right:0;top:0;bottom:0;z-index:40;box-shadow:-20px 0 50px rgba(0,0,0,.5)}#rail{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="rail">
+    <div class="brand">HopDesk</div>
+    <button class="rail-item active">◉ Session</button>
+    <button class="rail-item" id="navLogs">☰ Logs</button>
+    <button class="rail-item" id="navSettings">⚙ Settings</button>
+  </nav>
+  <div id="col">
+    <div id="strip">⚠ Rate-limited (429) · Active Session · deterministic fallback active<button id="stripOff">Resolve</button></div>
+    <div id="statusline">
+      <span id="sessLabel">Active Session · Ticket #US-89304</span>
+      <span class="legend"><span><span class="dot g"></span>Resolved cheap</span><span><span class="dot a"></span>Escalated</span><span><span class="dot s"></span>Fallback</span></span>
+      <button class="mini" id="killBtn">kill GPT-4</button>
+      <button class="mini" id="motionBtn" title="Cycle motion: auto → on → off">motion: auto</button>
+      <button class="mini" id="resetBtn">reset</button>
+    </div>
+    <div id="thread"></div>
+    <div id="compwrap">
+      <div id="chips">
+        <button id="newChatBtn">+ New chat</button>
+        <button data-q="refund">Refund FAQ</button>
+        <button data-q="contract">Contract debate</button>
+      </div>
+      <div id="composer">
+        <input id="box" placeholder="Ask about refunds, orders, contracts…" autocomplete="off">
+        <button id="send" title="Send">↑</button>
+      </div>
+      <div id="cap">Enter to send, Shift+Enter for new line · <span id="capBudget">Budget cap $25.00/day</span> · <span id="capSaved">saved $12.43 today</span> · <span id="capMotion" title="Animation state on this device">motion: …</span> · <span title="UI build tag — if this is missing you are viewing a cached file">b13</span></div>
+    </div>
+  </div>
+  <aside id="drawer" class="hide"></aside>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const money = n => '$' + Number(n).toFixed(4);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let sessionId = 'US-89304', turns = [], outage = false, currentRun = null, firstPaint = true;
+// Motion override: auto respects the OS, on/off force it. Persisted.
+let motionMode = 'auto';
+try{ motionMode = localStorage.getItem('hopdesk-motion') || 'auto'; }catch(_){}
+function osReduced(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function motionReduced(){
+  if(motionMode==='on') return false;
+  if(motionMode==='off') return true;
+  return osReduced();
+}
+function applyMotion(){
+  document.documentElement.dataset.motion = motionReduced() ? 'reduced' : 'full';
+  const label = motionMode==='auto'
+    ? (osReduced() ? 'motion: OS-reduced' : 'motion: full')
+    : ('motion: ' + motionMode + ' (override)');
+  const cap = $('#capMotion'); if(cap) cap.textContent = label;
+  const btn = $('#motionBtn'); if(btn) btn.textContent = 'motion: ' + motionMode;
+}
+
+function shortModel(m){ return (m||'').replace('groq-','').replace('openai-','').replace('gemini-','').replace('local-mock-',''); }
+function dotCls(s){ return s==='resolved-cheap'?'g':(s==='escalated-premium'?'a':'s'); }
+function md(s){
+  return esc(s).split('\n').map(line=>{
+    let l = line.replace(/^#{1,4}\s*/, '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    if (/^\s*---\s*$/.test(line)) return '<hr style="border:0;border-top:1px solid var(--border);margin:10px 0">';
+    if (/^\s*\d+\.\s/.test(line)) return '<p style="margin-bottom:6px">'+l+'</p>';
+    return l === '' ? '' : '<p>'+l+'</p>';
+  }).join('');
+}
+
+async function api(path, opts){
+  const r = await fetch(path, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
+  if(!r.ok) throw new Error('API '+r.status);
+  return r.json();
+}
+
+async function refreshMeta(){
+  const u = await api('/api/usage');
+  $('#capSaved').textContent = 'saved $' + u.saved_today.toFixed(2) + ' today';
+  const inc = await api('/api/incident');
+  setOutage(inc.down.length>0, true);
+}
+
+function stCls(s){ return s==='escalated-premium'?'st-premium':(s==='fallback'?'st-fallback':'st-cheap'); }
+function render(){
+  const th = $('#thread'); th.innerHTML = '';
+  turns.forEach((t,idx)=>{
+    const u = document.createElement('div'); u.className='turn '+stCls(t.status); u.dataset.run=t.run;
+    if(firstPaint){ u.classList.add('enter'); u.style.animationDelay=(idx*140)+'ms'; }
+    u.innerHTML = `<div class="u"><span>${esc(t.query)}</span></div>
+      <div class="a">${md(t.answer)}
+      ${t.order_card?`<div class="orderbox"><div><b>${esc(t.order_card.order)}</b> · ${esc(t.order_card.note)}</div><button data-act="claim">${esc(t.order_card.action)} →</button></div>`:''}
+      ${t.doc?`<div class="doc">▤ ${esc(t.doc.name)} · ${esc(t.doc.meta)} <button data-act="dl">Download</button></div>`:''}
+      </div>
+      <div class="meta"><span class="dot ${dotCls(t.status)}"></span>${esc(shortModel(t.model))} · ${money(t.cost_actual)} · ${Math.round(t.confidence*100)}%${t.served?' · '+esc(t.served):''} · <button class="det" data-run="${t.run}">details</button></div>`;
+    th.appendChild(u);
+  });
+  th.querySelectorAll('.det').forEach(b=>b.onclick=()=>{
+    const id = Number(b.dataset.run);
+    const open = !$('#drawer').classList.contains('hide');
+    if(open && currentRun && currentRun.run===id){
+      closeDrawer();
+      document.querySelectorAll('.turn.inspected').forEach(el=>el.classList.remove('inspected'));
+      currentRun = null;
+    } else openDrawer(id);
+  });
+  th.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ b.textContent = b.dataset.act==='claim'?'Claimed ✓':'Saved ✓'; b.disabled=true; });
+  th.scrollTop = th.scrollHeight;
+  firstPaint = false;
+  // Drawer opens ONLY on explicit details click — never auto-opened here.
+}
+
+function openDrawer(runId){
+  const t = turns.find(x=>x.run===runId) || currentRun;
+  if(!t) return;
+  currentRun = t;
+  document.querySelectorAll('.turn.inspected').forEach(el=>el.classList.remove('inspected'));
+  const marked = document.querySelector(`.turn[data-run="${t.run}"]`);
+  if(marked) marked.classList.add('inspected');
+  const d = $('#drawer');
+  d.classList.remove('hide');
+  d.classList.remove('closing');
+  d.classList.add('pre');
+  void d.offsetWidth;
+  d.classList.remove('pre');
+  d.classList.add('open');
+  d.dataset.st = t.status==='escalated-premium' ? 'premium' : (t.status==='fallback' ? 'fallback' : 'cheap');
+  const pct = Math.round(t.confidence*100), thr = Math.round(t.threshold*100);
+  const savedPct = t.cost_baseline ? (((t.cost_baseline-t.cost_actual)/t.cost_baseline*100).toFixed(1)) : '100.0';
+  d.innerHTML = `<div class="d-head"><h2>Run Inspection · #${t.run}</h2><span class="d-tag">${esc(shortModel(t.model))}</span><button id="dClose">✕</button></div>
+    <div class="d-sec">Routing</div>
+    <div class="kv"><span>Model</span><b>${esc(t.model)}</b></div>
+    <div class="kv"><span>Provider</span><b>${esc(t.provider)}</b></div>
+    <div class="kv"><span>Served</span><b>${esc(t.served||(t.live?'live':'simulated'))}</b></div>
+    ${t.premium_attempt?`<div class="kv"><span>Premium attempt</span><b>${esc(t.premium_attempt)}</b></div>`:''}
+    <div class="kv"><span>Tier</span><b class="${t.tier==='free'?'free':''}">${t.tier==='free'?'● Free (budget tier)':'◆ '+esc(t.tier)}</b></div>
+    <div class="why">${esc(t.why)}</div>
+    <div class="d-sec">Confidence</div>
+    <div class="confbig">Evaluator Score <b>${t.confidence.toFixed(2)} vs ${t.threshold.toFixed(2)} threshold</b></div>
+    <div class="cbar"><i style="width:${pct}%"></i></div>
+    <div class="cscale"><span>Min 0.0</span><span>Pass (${t.threshold.toFixed(2)})</span><span>1.0</span></div>
+    <div class="d-sec">Tokens</div>
+    <div class="toks"><div class="tok"><div class="t-l">Prompt (in)</div><div class="t-v">${t.tokens_in ?? '—'}</div></div><div class="tok"><div class="t-l">Completion</div><div class="t-v">${t.tokens_out ?? '—'}</div></div><div class="tok"><div class="t-l">Total</div><div class="t-v">${t.tokens_total ?? ((t.tokens_in||0)+(t.tokens_out||0) || '—')}</div></div></div>
+    <div class="d-sec">Money</div>
+    <div class="money-big">${money(t.cost_actual)}</div>
+    <div class="money-sub">vs ${money(t.cost_baseline)} GPT-4 · saved ${savedPct}%</div>
+    <div><span class="savepill">+$${t.saved.toFixed(4)} saved this turn</span></div>
+    <div class="d-sec">Trace</div>
+    <div class="kv"><span>Run #</span><b>${t.run}</b></div>
+    <div class="kv"><span>Ledger Seq</span><b>${esc(t.ledger||'—')}</b></div>
+    <div class="kv"><span>Fallback Count</span><b>${t.fallback_count}${t.fallback_count?' (degraded)':' (primary match)'}</b></div>
+    <div class="kv"><span>Latency</span><b>${t.latency_ms}ms</b></div>
+    <button id="copybtn">⌁ Copy JSON trace</button>`;
+  $('#dClose').onclick = closeDrawer;
+  $('#copybtn').onclick = e=>{ navigator.clipboard.writeText(JSON.stringify(t,null,2)).catch(()=>{}); e.target.textContent='Copied ✓'; setTimeout(()=>e.target.textContent='⌁ Copy JSON trace',1200); };
+  const bar = d.querySelector('.cbar i');
+  if(bar){ bar.style.width='0%'; requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=pct+'%'; })); }
+}
+
+function closeDrawer(){
+  const d = $('#drawer');
+  d.classList.remove('open');
+  if(motionReduced()){ d.classList.add('hide'); d.classList.remove('closing'); return; }
+  void d.offsetWidth;
+  d.classList.add('closing');
+  setTimeout(()=>{
+    if(d.classList.contains('open')){ d.classList.remove('closing'); return; }
+    d.classList.add('hide');
+    d.classList.remove('closing');
+  }, 300);
+}
+
+async function send(text){
+  text = (text||'').trim() || $('#box').value.trim();
+  if(!text) return;
+  $('#box').value='';
+  const btn=$('#send'); btn.disabled=true;
+  // Auto-cycle: close stale inspection while routing; reopens on arrival.
+  closeDrawer(); currentRun = null;
+  document.querySelectorAll('.turn.inspected').forEach(el=>el.classList.remove('inspected'));
+  // Pending bubble: UI-only, detached from turn data and the drawer.
+  const th = $('#thread');
+  const pend = document.createElement('div');
+  pend.className='turn pending'; pend.id='pending-turn';
+  pend.innerHTML = `<div class="u"><span>${esc(text)}</span></div>
+    <div class="a"><span class="tdots"><i></i><i></i><i></i></span>
+    <div class="routing-shimmer">routing… · analyzing query</div></div>`;
+  th.appendChild(pend);
+  th.scrollTop = th.scrollHeight;
+  try{
+    const run = await api('/api/chat',{method:'POST',body:JSON.stringify({session_id:sessionId,text})});
+    pend.classList.add('leaving');
+    await new Promise(r=>setTimeout(r,140));
+    pend.remove();
+    turns.push(run); render(); refreshMeta();
+  }catch(e){
+    pend.querySelector('.a').innerHTML = `<div class="pend-err">Send failed — the router is unreachable.<button id="retryBtn">Retry</button></div>`;
+    pend.querySelector('#retryBtn').onclick = ()=>{ pend.remove(); btn.disabled=false; send(text); };
+  }
+  btn.disabled=false;
+}
+
+function setOutage(on, silent){
+  outage=on;
+  $('#strip').classList.toggle('show',on);
+  $('#killBtn').textContent = on?'revive GPT-4':'kill GPT-4';
+  $('#sessLabel').textContent = on
+    ? 'Active Session · Ticket #'+sessionId+' · deterministic fallback active'
+    : 'Active Session · Ticket #'+sessionId;
+}
+
+async function load(){
+  applyMotion();
+  const s = await api('/api/seed');
+  $('#capBudget').textContent = 'Budget cap $'+Number(s.budget_cap_day).toFixed(2)+'/day';
+  const t = await api('/api/sessions/'+sessionId);
+  turns = t.turns; render(); refreshMeta();
+}
+
+$('#send').onclick = ()=>send();
+$('#box').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); }});
+$('#newChatBtn').onclick = async ()=>{ const s = await api('/api/sessions',{method:'POST'}); sessionId=s.session_id; turns=[]; currentRun=null; closeDrawer(); $('#sessLabel').textContent='Active Session · Ticket #'+sessionId; render(); };
+document.querySelectorAll('#chips [data-q]').forEach(b=>b.onclick=()=>{
+  send(b.dataset.q==='contract'
+    ? 'Our legal counsel reviewed section 8.3 regarding indemnity limits and finds clause 12.4 unacceptable. We demand a revision.'
+    : 'Can I get a shipping refund for order #US-89304? It was delayed past the guaranteed delivery date by 4 days.');
+});
+$('#motionBtn').onclick = ()=>{
+  motionMode = motionMode==='auto' ? 'on' : (motionMode==='on' ? 'off' : 'auto');
+  try{ localStorage.setItem('hopdesk-motion', motionMode); }catch(_){}
+  applyMotion();
+};
+$('#killBtn').onclick = async ()=>{
+  if(!outage) await api('/api/incident',{method:'POST',body:JSON.stringify({down:['openai-gpt-4','openai','premium']})});
+  else await api('/api/incident/clear',{method:'POST'});
+  const inc = await api('/api/incident'); setOutage(inc.down.length>0);
+};
+$('#stripOff').onclick = async ()=>{ await api('/api/incident/clear',{method:'POST'}); setOutage(false); };
+$('#resetBtn').onclick = async ()=>{ const r = await api('/api/reset',{method:'POST'}); sessionId=r.session_id; setOutage(false); load(); };
+$('#navLogs').onclick = async ()=>{ const rs = await api('/api/runs?limit=50'); alert(rs.runs.map(r=>'#'+r.run+' '+r.model+' $'+r.cost_actual+' fb:'+r.fallback_count).join('\n')||'no runs'); };
+$('#navSettings').onclick = ()=>alert('Budget cap $25.00/day · threshold 0.70 · fail-closed · ledger on');
+load();
+</script>
+</body>
+</html>
