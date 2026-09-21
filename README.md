@@ -1,12 +1,3 @@
----
-title: HopDesk — Smart-Budget AI Support Agent
-emoji: 🐸
-colorFrom: green
-colorTo: blue
-sdk: static
-pinned: false
----
-
 <p align="center">
   <img src="https://img.shields.io/badge/%F0%9F%90%B8-HopDesk-green?style=for-the-badge" alt="HopDesk"/>
 </p>
