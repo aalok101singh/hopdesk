@@ -14,12 +14,14 @@ when GROQ_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY are configured.
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from modelhop import ModelHop, estimate_cost
@@ -402,6 +404,23 @@ async def dispatch(session_id: str, query: str) -> Dict[str, Any]:
 # ------------------------------------------------------------------ app
 
 app = FastAPI(title="HopDesk", version="2.0.0")
+
+# Split deploy (Static HF UI + Render API): browsers block cross-origin
+# calls without this. Origins from env; "*" default is acceptable here —
+# public demo, no cookies, no credentials, keys stay server-side.
+_cors_raw = os.environ.get("HOPDESK_CORS_ORIGINS", "*")
+_cors_origins = (
+    ["*"]
+    if _cors_raw.strip() in ("", "*")
+    else [o.strip() for o in _cors_raw.split(",") if o.strip()]
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 sessions[SEED["opening_session"]] = _seed_session()
 
 
