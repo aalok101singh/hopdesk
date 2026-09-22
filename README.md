@@ -43,13 +43,6 @@ and `GEMINI_API_KEY` ([aistudio.google.com](https://aistudio.google.com/apikey))
 Premium stays honestly simulated unless a paid `OPENAI_API_KEY` is set — the
 drawer always labels `live` vs `simulated`.
 
-## 60-second judge demo
-
-1. Seeded thread loads — click `details` on any answer for the x-ray.
-2. `Contract debate` chip → amber escalation (0.62 < 0.70), premium attempt logged.
-3. `kill GPT-4` → resend → slate fallback, `fallback_count 1`, amber 429 strip.
-4. `+ New chat` → fresh session, ledger keeps history. `reset` restores the seed.
-
 ## Powered by ModelHop
 
 HopDesk is a thin UI over **[ModelHop](https://pypi.org/project/modelhop/)**
@@ -70,7 +63,7 @@ What HopDesk borrows from it:
 
 Built by [Aalok](https://github.com/aalok101singh) — [ModelHop on GitHub](https://github.com/aalok101singh/modelhop) · MIT.
 
-## Deploy (free, Render only)
+## Deploy
 
 - **Live:** https://hopdesk-z6sp.onrender.com/ (UI + API, same origin — no params, no CORS, no split)
 - Build `pip install -r requirements.txt` · Start `uvicorn app:app --host 0.0.0.0 --port $PORT`
