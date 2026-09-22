@@ -54,7 +54,14 @@ drawer always labels `live` vs `simulated`.
 
 HopDesk is a thin UI over **[ModelHop](https://pypi.org/project/modelhop/)**
 (`pip install modelhop`) — an open-source plug-and-play router that sends each
-query to the cheapest capable model:
+query to the cheapest capable model. Taste the engine on its own:
+
+```bash
+pip install modelhop
+modelhop route "How do I reset my password?"   # cheapest capable tier + savings printed
+```
+
+What HopDesk borrows from it:
 
 - `LearningRouter` + `QueryAnalyzer` — tier choice per query
 - `ConfidenceEngine` (threshold 0.70) — escalation brains
@@ -63,12 +70,11 @@ query to the cheapest capable model:
 
 Built by [Aalok](https://github.com/aalok101singh) — [ModelHop on GitHub](https://github.com/aalok101singh/modelhop) · MIT.
 
-## Deploy (free)
+## Deploy (free, Render only)
 
-- **UI:** this Space (Static) — `index.html` only.
-- **API:** Render Free — `pip install -r requirements.txt`,
-  `uvicorn app:app --host 0.0.0.0 --port $PORT`, env `GROQ_API_KEY` / `GEMINI_API_KEY`.
-- The page talks to the API via `?api=<render-url>` (saved on first visit, editable in Settings).
+- **Live:** https://hopdesk-z6sp.onrender.com/ (UI + API, same origin — no params, no CORS, no split)
+- Build `pip install -r requirements.txt` · Start `uvicorn app:app --host 0.0.0.0 --port $PORT`
+- Env `GROQ_API_KEY` / `GEMINI_API_KEY` (optional; keyless still demos fully offline)
 
 ## Files
 
