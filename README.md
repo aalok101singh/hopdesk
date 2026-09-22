@@ -6,7 +6,7 @@
 <h3 align="center">The Smart-Budget AI Support Agent — every query hops to the cheapest model that can handle it.</h3>
 
 <p align="center">
-  <a href="https://aalok101singh-hopdesk.hf.space?api=https://hopdesk-z6sp.onrender.com"><b>◉ Live demo</b></a> ·
+  <a href="[https://aalok101singh-hopdesk.hf.space?api=https://hopdesk-z6sp.onrender.com](https://hopdesk-z6sp.onrender.com/)"><b>◉ Live demo</b></a> ·
   <a href="#60-second-judge-demo">60-second tour</a> ·
   <a href="#powered-by-modelhop">Powered by ModelHop</a>
 </p>
